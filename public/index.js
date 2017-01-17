@@ -169,3 +169,120 @@ console.log(cars);
 console.log(rentals);
 console.log(actors);
 console.log(rentalModifications);
+
+//Convert String to Date
+//@param [string]
+//@return [Date]
+function convertDate(str){
+  var re=/[0-9]+/g;
+  var result=re[Symbol.match](str);
+  var dateLoc=new Date(result[0],result[1],result[2]);
+  return dateLoc;
+}
+
+//          Exercice 1
+//Search the car's price per day and km using its id
+//@param [string]
+//@return [double,double]
+function searchPrices(str){
+  for (var i=0; i<cars.length;i++){
+    if (cars[i].id==str)
+      return [cars[i].pricePerDay, cars[i].pricePerKm];
+  }
+}
+
+function Exo1(){
+  for (var i=0; i<rentals.length;i++){
+    var prices=searchPrices(rentals[i].carId)
+    var numberOfDays=Math.ceil(Math.abs(convertDate(rentals[i].returnDate).getTime()-convertDate(rentals[i].pickupDate).getTime())/(1000*3600*24));
+    rentals[i].price=numberOfDays*prices[0]+rentals[i].distance*prices[1];
+    }
+  //console.log(rentals);
+}
+
+//          Exercice 2
+function Exo2(){
+  for (var i=0; i<rentals.length;i++){
+    var prices=searchPrices(rentals[i].carId)
+    var numberOfDays=Math.ceil(Math.abs(convertDate(rentals[i].returnDate).getTime()-convertDate(rentals[i].pickupDate).getTime())/(1000*3600*24));
+    if (numberOfDays>=1 && numberOfDays<4)
+      prices[0]=prices[0]*0.9;
+    else if (numberOfDays>=4 && numberOfDays<10)
+      prices[0]=prices[0]*0.7;
+    else if (numberOfDays>=10)
+      prices[0]=prices[0]*0.5;
+    rentals[i].price=numberOfDays*prices[0]+rentals[i].distance*prices[1];
+  }
+  //console.log(rentals);
+}
+
+//          Exercice 3
+function Exo3(){
+  Exo2();
+  for (var i=0; i<rentals.length;i++){
+    var comm=rentals[i].price*0.3;
+    var numberOfDays=Math.ceil(Math.abs(convertDate(rentals[i].returnDate).getTime()-convertDate(rentals[i].pickupDate).getTime())/(1000*3600*24));
+    rentals[i].commission.insurance = comm/2;
+    rentals[i].commission.assistance = numberOfDays;
+    rentals[i].commission.drivy = comm/2 - numberOfDays ;
+  }
+  //console.log(rentals);
+}
+
+//          Exercice 4
+function Exo4(){
+  Exo3();
+  for (var i=0; i<rentals.length;i++){
+    if (rentals[i].options.deductibleReduction){
+      var numberOfDays=Math.ceil(Math.abs(convertDate(rentals[i].returnDate).getTime()-convertDate(rentals[i].pickupDate).getTime())/(1000*3600*24));
+      rentals[i].price += 4*numberOfDays;
+      rentals[i].commission.drivy += 4*numberOfDays;
+    }
+  }
+  //console.log(rentals);
+}
+
+//          Exercice 5
+//Search the actors associated with a specific rentalId
+//@param [string]
+//@return [int]
+function searchActor(str){
+  for (var i=0; i<actors.length;i++){
+    if (actors[i].rentalId==str)
+      return i;
+  }
+}
+
+function Exo5(){
+  Exo4();
+  for (var i=0; i<rentals.length;i++){
+    actors[searchActor(rentals[i].id)].payment[0].amount=rentals[i].price;
+    actors[searchActor(rentals[i].id)].payment[1].amount=rentals[i].price-rentals[i].commission.insurance*2;
+    actors[searchActor(rentals[i].id)].payment[2].amount=rentals[i].commission.insurance;
+    actors[searchActor(rentals[i].id)].payment[3].amount=rentals[i].commission.assistance;
+    actors[searchActor(rentals[i].id)].payment[4].amount=rentals[i].commission.drivy;
+  }
+  //console.log(actors);
+}
+
+
+//            Exercice 6
+//Search a rental in rentals using its id
+//@param [string]
+//@return [int]
+function searchRental(str){
+  for (var i=0; i<rentals.length;i++){
+    if (rentals[i].id==str)
+      return i;
+  }
+}
+//Using a "hard" method : we update rentals and do everything all over again
+function Exo6(){
+  for (var i=0; i<rentalModifications.length;i++){
+    if (rentalModifications[i].pickupDate) rentals[searchRental(rentalModifications[i].rentalId)].pickupDate=rentalModifications[i].pickupDate;
+    if (rentalModifications[i].distance) rentals[searchRental(rentalModifications[i].rentalId)].distance=rentalModifications[i].distance;
+    if (rentalModifications[i].returnDate) rentals[searchRental(rentalModifications[i].rentalId)].returnDate=rentalModifications[i].returnDate;
+  }
+  Exo5();
+  console.log(actors)
+}
